@@ -28,17 +28,6 @@ int main() {
     // 设置字体大小
     FT_Set_Pixel_Sizes(face, 0, 16);
 
-    // 设置输出图片大小
-    int image_width = 100;
-    int image_height = 100;
-
-    // 创建空白图片
-    Mat image(image_height, image_width, CV_8UC4, Scalar(255, 255, 255, 0));
-
-    // 设置绘制起点
-    int pen_x = 20;
-    int pen_y = 20;
-
     // 设置要渲染的汉字
     wchar_t c = L'你';
 
@@ -51,28 +40,33 @@ int main() {
 
     FT_GlyphSlot slot = face->glyph;
 
-    // 将渲染的汉字写入图片
-    auto bitmap = &slot->bitmap;
-    int rows = bitmap->rows; // 字宽
-    int cols = bitmap->width; // 字高
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            int ty = pen_y + i;
-            int tx = pen_x + j;
-            if (ty >= image.rows || tx >= image.cols || ty < 0 || tx < 0)
-                continue;
-            image.at<Vec4b>(ty, tx)[3] = bitmap->buffer[i * cols + j];
+    // 创建一个图像，用于渲染矢量图
+    Mat vector_image(500, 500, CV_8UC4, Scalar(255, 255, 255, 0));
+
+    // 设置绘制起点
+    int pen_x = 20;
+    int pen_y = 20;
+
+    // 绘制字形
+    auto outline = slot->outline;
+    for (int i = 0; i < outline.n_contours; i++) {
+        int contour_start = outline.contours[i];
+        for (int j = contour_start; j < outline.contours[i + 1]; j++) {
+            // 获取轮廓点
+            FT_Vector point = outline.points[j];
+            // 在 vector_image 上绘制轮廓点
+            circle(vector_image, Point(pen_x + point.x, pen_y + point.y), 2, Scalar(0, 0, 0, 255), -1);
         }
     }
 
-    // 输出图片
-    imwrite("output.png", image);
+    // 输出矢量图像
+    imwrite("vector_output.png", vector_image);
 
     // 释放资源
     FT_Done_Face(face);
     FT_Done_FreeType(library);
 
-    std::cout << "PNG file saved successfully" << std::endl;
+    std::cout << "Vector PNG file saved successfully" << std::endl;
 
     return 0;
 }
