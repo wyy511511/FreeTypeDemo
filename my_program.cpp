@@ -22,7 +22,7 @@ int main() {
     int font_size = 50;
 
     // 输入的字
-    std::wstring input_char = L"马";
+    std::wstring input_char = L"山";
 
     // 遍历Fonts马文件夹下的所有字体文件
     fs::path fonts_dir("./Fonts");
@@ -60,6 +60,12 @@ int main() {
                 std::cerr << "Empty glyph bitmap" << std::endl;
                 FT_Done_Face(face);
                 continue;
+            }
+
+            if (bitmap->rows < font_size / 2 && bitmap->width < font_size / 2 && slot->bitmap_top == font_size) {
+                std::cerr << "Skipping placeholder glyph" << std::endl;
+                FT_Done_Face(face);
+                continue; 
             }
 
 
