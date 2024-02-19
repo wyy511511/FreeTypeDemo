@@ -43,7 +43,7 @@ int main() {
             FT_Set_Pixel_Sizes(face, 0, font_size);
 
             // 创建空白图片
-            Mat image(font_size, font_size, CV_8UC4, Scalar(0, 0, 0, 0));
+            Mat image(font_size, font_size, CV_8UC1, Scalar(0));
 
             // 渲染汉字
             error = FT_Load_Char(face, input_char[0], FT_LOAD_RENDER);
@@ -54,15 +54,45 @@ int main() {
 
             FT_GlyphSlot slot = face->glyph;
 
-            // 将渲染的汉字写入图片
+            
             auto bitmap = &slot->bitmap;
+            if (bitmap->rows == 0 || bitmap->width == 0) {
+                std::cerr << "Empty glyph bitmap" << std::endl;
+                FT_Done_Face(face);
+                continue;
+            }
+
+
+
+            // 在控制台上输出0和1的图
+            std::cout << "Output for font: " << entry.path().stem().string() << std::endl;
+            for (int i = 0; i < font_size; i++) {
+                for (int j = 0; j < font_size; j++) {
+                    if (i < bitmap->rows && j < bitmap->width) {
+                        // 字形区域
+                        int idx = i * bitmap->width + j;
+                        std::cout << (bitmap->buffer[idx] ? '1' : '0');
+                    } else {
+                        // 字形外的区域
+                        std::cout << '0';
+                    }
+                }
+                std::cout << std::endl;
+            }
+
+            // 将渲染的汉字写入图片
+
+
+
+
             for (int i = 0; i < bitmap->rows; i++) {
                 for (int j = 0; j < bitmap->width; j++) {
                     int ty = i;
                     int tx = j + (font_size - bitmap->width) / 2; // 水平居中
                     if (ty >= image.rows || tx >= image.cols || ty < 0 || tx < 0)
                         continue;
-                    image.at<Vec4b>(ty, tx)[3] = bitmap->buffer[i * bitmap->width + j];
+                    if (bitmap->buffer[i * bitmap->width + j] != 0)
+                        image.at<uchar>(ty, tx) = 255; // 白色
                 }
             }
 
@@ -73,6 +103,9 @@ int main() {
             std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
             std::string output_file = "output_images/" + converter.to_bytes(input_char) + "_" + entry.path().stem().string() + ".png";
             imwrite(output_file, image);
+
+            // 输出ttf文件名称
+            std::cout << "TTf File Name: " << entry.path().stem().string() << std::endl;
         }
     }
 
