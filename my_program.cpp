@@ -22,7 +22,7 @@ int main() {
     int font_size = 50;
 
     // 输入的字
-    std::wstring input_char = L"山";
+    std::wstring input_char = L"马云";
 
     // 遍历Fonts马文件夹下的所有字体文件
     fs::path fonts_dir("./Fonts");
@@ -43,7 +43,8 @@ int main() {
             FT_Set_Pixel_Sizes(face, 0, font_size);
 
             // 创建空白图片
-            Mat image(font_size, font_size, CV_8UC1, Scalar(0));
+            // Mat image(font_size, font_size, CV_8UC1, Scalar(0));
+            Mat image(font_size, font_size, CV_8UC4, Scalar(0, 0, 0, 0));
 
             // 渲染汉字
             error = FT_Load_Char(face, input_char[0], FT_LOAD_RENDER);
@@ -90,17 +91,15 @@ int main() {
 
 
 
-
             for (int i = 0; i < bitmap->rows; i++) {
-                for (int j = 0; j < bitmap->width; j++) {
-                    int ty = i;
-                    int tx = j + (font_size - bitmap->width) / 2; // 水平居中
-                    if (ty >= image.rows || tx >= image.cols || ty < 0 || tx < 0)
-                        continue;
-                    if (bitmap->buffer[i * bitmap->width + j] != 0)
-                        image.at<uchar>(ty, tx) = 255; // 白色
-                }
-            }
+                 for (int j = 0; j < bitmap->width; j++) {
+                     int ty = i;
+                     int tx = j + (font_size - bitmap->width) / 2; // 水平居中
+                     if (ty >= image.rows || tx >= image.cols || ty < 0 || tx < 0)
+                         continue;
+                     image.at<Vec4b>(ty, tx)[3] = bitmap->buffer[i * bitmap->width + j];
+                 }
+             }
 
             // 释放资源
             FT_Done_Face(face);
