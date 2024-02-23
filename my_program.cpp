@@ -88,6 +88,16 @@ int main(int argc, char** argv) {
                 } else {
                     std::cout << "Image saved: " << output_file << std::endl;
                 }
+
+                if (entry.path().filename() == "8_简体字- (Mandarin) Simplified Chinese Characters.ttf") {
+                    std::string output_file_smpi = "output_images/" + converter.to_bytes(input_char) + ".png";
+                    if (!imwrite(output_file_smpi, image)) {
+                        std::cerr << "Failed to image: " << output_file_smpi << std::endl;
+                    } else {
+                        std::cout << "SMPI Image saved: " << output_file_smpi << std::endl;
+                    }
+                }
+
             }
 
             // 释放资源
